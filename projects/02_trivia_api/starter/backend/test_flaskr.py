@@ -73,7 +73,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/categories/2/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertTrue(data['data'])
+        self.assertTrue(data['questions'])
 
     def test_not_found_category_questions(self):
         res = self.client().get('/categories/2000/questions')
@@ -83,7 +83,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/questions/search')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertTrue(data['data'])
+        self.assertTrue(data['questions'])
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
