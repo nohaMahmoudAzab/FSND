@@ -163,17 +163,20 @@ def create_app(test_config=None):
   @app.route('/categories/<category_id>/questions')
   def get_category_questions(category_id):
     category = Category.query.get(category_id)
-    questions = Question.query.filter(Question.category == category_id).all()
-
-    if len(questions) > 0:
-      return jsonify({
-        'success': 1,
-        'totalQuestions': len(questions),
-        'questions': [question.format() for question in questions],
-        'currentcategory': category.format()
-      })
-    else:
+ 
+    if category is None:
       abort(404)
+    else:
+      questions = Question.query.filter(Question.category == category_id).all()
+      if len(questions) > 0:
+        return jsonify({
+          'success': 1,
+          'totalQuestions': len(questions),
+          'questions': [question.format() for question in questions],
+          'currentcategory': category.format()
+        })
+      else:
+        abort(404)
 
   '''
   POST endpoint to get questions to play the quiz. 
@@ -183,24 +186,27 @@ def create_app(test_config=None):
   '''
   @app.route('/quizzes', methods=["POST"])
   def quizzes():
-    data = request.get_json()
-    category_id = data['quiz_category']['id']
-    if category_id != 0:
-      query = Question.query.filter(Question.category == category_id)
-    else:
-      query = Question.query
+    try:
+      data = request.get_json()
+      category_id = data['quiz_category']['id']
+      if category_id != 0:
+        query = Question.query.filter(Question.category == category_id)
+      else:
+        query = Question.query
 
-    questions = query.filter(~Question.id.in_(data['previous_questions'])).all()
+      questions = query.filter(~Question.id.in_(data['previous_questions'])).all()
 
-    if len(questions) > 0:
-      random_question = (random.choice(questions)).format()
-    else:
-      random_question = None
+      if len(questions) > 0:
+        random_question = (random.choice(questions)).format()
+      else:
+        random_question = None
 
-    return jsonify({
-      'success': 1,
-      'question': random_question
-    })
+      return jsonify({
+        'success': 1,
+        'question': random_question
+      })
+    except:
+      abort(422)
 
   '''
   Error Handlers:

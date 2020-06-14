@@ -63,11 +63,20 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['id'])
 
+    def test_failed_create_question(self):
+        res = self.client().post('/questions')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 422)
+
     def test_delete_question(self):
         res = self.client().delete('/questions/2')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['total_count'])
+
+    def test_failed_delete_question(self):
+        res = self.client().delete('/questions/200000000000')
+        self.assertEqual(res.status_code, 404)
 
     def test_get_category_questions(self):
         res = self.client().get('/categories/2/questions')
@@ -75,15 +84,30 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['questions'])
 
-    def test_not_found_category_questions(self):
-        res = self.client().get('/categories/2000/questions')
-        self.assertEqual(res.status_code, 200)
+    def test_not_found_get_category_questions(self):
+        res = self.client().get('/categories/200000000000/questions')
+        self.assertEqual(res.status_code, 404)
 
     def test_search_questions(self):
-        res = self.client().post('/questions/search')
+        res = self.client().post('/questions/search',json={"searchTerm": "age"})
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['questions'])
+
+    def test_not_found_search_questions(self):
+        res = self.client().post('/questions/search',json={"searchTerm": "not_found"})
+        self.assertEqual(res.status_code, 404)
+
+    def test_get_quizzes(self):
+        res = self.client().post('/quizzes',json={"quiz_category": {"id": 1}, "previous_questions": [1]})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['question'])
+
+    def test_unprocessed_get_quizzes(self):
+        res = self.client().post('/quizzes')
+        self.assertEqual(res.status_code, 422)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
